@@ -208,3 +208,160 @@ version 2.0.0.3).
 Develop against the GOG build: static analysis works directly on the shipped exe, there is no
 DRM in the way of hooking, and it is the build new players can buy. Keep the Steam build as a
 second target through signature-checked runtime hooks (no unpacking).
+
+## Session 4 (2026-10-17): host-mode prototype set up
+
+- Client switches found by listing every string passed to the switch checker `0x9fa4c0`, among
+  them `window`, `debug`, `pythondebug`, `nointro`, `multi`, `forceteam1`, `forceteam2`, `noai`,
+  `dev`, `startingap`. `-multi` skips the single-instance mutex
+  `WorldInConflict_Duplicate_App_Detection` in WinMain (`0xb2ef40`), so two copies can run on one PC.
+- The retail client writes no debug log by default; `-debug` is expected to enable
+  `Documents\World in Conflict\Debug\wic_<id>_debug.txt` (not yet confirmed).
+- Prototype in a GOG test copy: `wic.exe` file offset `0x73f387` changed `00` → `01`
+  (`push 0` → `push 1` before `call 0xb405d0` in `EX_MultiPlayerHostMode::InitGame`). Result: pending
+  owner test.
+
+### Test 1 (owner, v1 one-byte patch, GOG test copy, LAN host on as_Dome)
+
+Observed (client log with `-debug`):
+- Lobby shows the campaign description for as_Dome (Soviets invading Seattle). Unknown whether
+  the unpatched lobby shows the same.
+- On Create: `EX_PlayState::Init(): MULTI_PLAYER_HOST mode`, server listening on 48000, mission
+  `maps/seattle2/seattle2.ice` loaded with `units/unittypes_wic_singleplayer.ice`,
+  `ex_singleplayermode.cpp InitGame(): creating game...`, then
+  `ex_multiplayerhostmode.cpp(788): InitGame(): Error Could not init Python` and back to the menu.
+
+Code (GOG exe):
+- Python init `0xb41200(this, spScriptName, flag)` (`ret 0xc`, path in EAX). The MP host pushes
+  `0, 0`, computes the path with `0x985dd0` (reads `myPythonServerScript` from mission-info
+  `+0x29dc`), then calls it.
+- `EX_SinglePlayerMode::PlayerLoadingThread` (`0xb40c90`) calls the virtual `InitGame(1)`, then
+  pushes `0`, gets the single-player script name with `0x984310` (reads
+  `mySinglePlayerData.mySinglePlayer...` from mission-info `+0x29c0`), pushes it as the second
+  argument, and calls `0x985dd0` and `0xb41200`.
+
+v2 patch (GOG test copy, on top of v1): `0xb3f393`–`0xb3f3d7` rewritten to do what single player
+does (`push 0; push ecx; mov eax,esi; call 0x984310; add esp,4; push eax; call 0x985dd0;
+push ebx; call 0xb41200; test al,al; jnz 0xb3f3e3; jmp 0xb3f3d8`). This overwrites the
+"Could not init Python" log call. The exe has no relocations. Patched sha256 `18765094...`.
+
+### Test 2 (owner, v2)
+
+Observed: same symptom (back to menu after ~1 s). Log: no "Could not init Python" any more; Python
+init passed. Right after it `EX_PlayState::Update() returning EVENT_GAME_EXIT`, and during teardown
+`wico_pythonc.cpp CheckPyError(): exceptions.ImportError: No module named client`.
+
+Code: the MP host's loading thread `0xb3f840` runs `InitGame` (`0xb3f2e0`), then `0xb3f640`,
+which creates the local player with `EX_IPlayMode::InitPlayer` (`0xb41e20`). InitPlayer takes the
+role in EAX and `(slot, a2, a3, isMultiplayer)` on the stack. It rejects role/match mismatches
+with messages logged at a level `-debug` does not write ("Player joining singleplayer match with
+non-SP role!", "...multiplayer match with SP role!", FPM variants). Single player calls it with
+`EAX=[0xe9ff6c]` (SP role) and `(0,0,1,0)`; the host calls it with `EAX = 0 or [0xe9ff74]` and
+`(0,1,0,1)`.
+
+v3 patch (on top of v2): `0xb3f7cc`–`0xb3f7e3` → `mov eax,[0xe9ff6c]; push 0; push 1; push 0;
+push 0; nop×11`, so the host's own player is created like a single-player player. sha256
+`63e7976f...`. Host script now also passes `-debugspam` (expected to show the low-level messages;
+not yet confirmed). Expected next obstacle: remote players will still join with an MP role.
+
+### Test 3 (owner, v3) and switch to runtime tracing
+
+Observed: same symptom. `-debugspam` added nothing. The logger (`0xa02800`) writes level 0 and 2
+always, level 1 only when `[0xdffe06]` is set, so the missing "creating player on slot %d"
+(level 0, `EX_IPlayMode::InitPlayer`) means the host never reached player creation. Derived: the
+failure is still inside or right after the Python init; v2 had overwritten that step's error log.
+
+Tool added (`wic-coop/trace/`, own code): `tracehook.dll` redirects 12 `call` sites on the host
+loading path to logging thunks (args, return value), written to `coop_trace.log`;
+`coop_launch.exe` starts wic.exe suspended and loads the DLL with CreateRemoteThread +
+LoadLibraryA. Built with MSVC x86 (VS 2022). Smoke test in the GOG test copy: all 12 sites hooked.
+
+### Trace 1 (owner, v3 + tracer)
+
+Observed (`coop_trace.log`): host InitGame → `SP::InitGame(1)` returns 1 → InitPython (cave) →
+"python setup paths" (`0x972500`) returns 1 → "run server script" (`0x925a80`) returns 0 → InitPython
+0 → InitGame 0. `0x925a80` creates `WICP_Python` and its init (`0x925760`, `wicp_python.cpp`) does
+`import client`, matching the logged `ImportError: No module named client`. So the client-side
+Python cannot find the map's `client.py` on the host.
+
+Code read: `0x984310` returns `mySinglePlayerData.mySinglePlayerScriptFiles`; `0x985dd0` builds
+`<map dir>/<myWicedMap.myPythonServerScript>` (mission-info `+0x29dc` is `myWicedMap`, not the game
+mode). `0x972500` sets the Python search path from those (via `0x4aab10`). `EXCO_MissionInfo::Init`
+(`0x987540`) loads the single-player data (`0x987290`) in every mode.
+
+Next: tracer v2 (21 sites, prints string arguments and results) to compare the host attempt with
+a real single-player mission start in one session.
+
+### Trace 2 (owner): host attempt, then Resume Campaign in the same session
+
+Observed: Resume Campaign (berlin1) also failed in the test copy with the same
+`import client` failure, through the unpatched single-player path
+(`ex_singleplayermode.cpp(163): PlayerLoadingThread(): Error Could not init Python`). Strings from
+the trace: single-player script files = `cutscenes/maps/<map>/python/serverplay.py`, server script
+= `maps/<map>/python/server.py`, Python path = `cutscenes/maps/<map>/python;maps/<map>/python`;
+the host builds identical strings for seattle2.
+
+Derived: the failure is not caused by the host patches. Every test script had passed
+`-pythondebug`. In `0x972500`, without `pythondebug` the game increments `[0xe0f418]` before
+starting Python. Guess (unconfirmed): that is `Py_OptimizeFlag`, so normal runs import the
+optimized `.pyo` files and `-pythondebug` makes Python look for `.py`/`.pyc`, which the archives
+do not hold. `-pythondebug` removed from all test scripts. Lesson: assert a single-player
+baseline in the exact test setup before testing a patch (playbook lesson 3).
+
+### Test 6 (owner): v3 host without `-pythondebug` — campaign runs from the LAN lobby
+
+Observed (owner + trace): LAN Create Game on as_Dome with the v3 exe loads campaign mission
+seattle2. For a few seconds only the starting APCs show, then the opening cutscene plays in full
+(sound and animation) and the normal campaign mission starts; the owner reports it plays normally.
+Trace: MPHost::InitGame = 1, get player slot = 1, voip connect = 1,
+`EX_IPlayMode::InitPlayer(SP role, 0,0,1,0)` = 1, loading step 3 = 1.
+
+Derived: the minimum to run a campaign mission as a network host is three edits in the GOG exe:
+`InitGame(1)` (0xb3f387), single-player script path for Python init (0xb3f393..), single-player role
+for the local player (0xb3f7cc..). The server keeps listening on 48000 while the mission runs
+(from the `enabled reliable listening on port 48000` line in earlier logs; not re-checked during play).
+
+`coop_join.cmd` only opens a second copy at the main menu; joining has not been tried yet.
+
+### Test 7 (owner): second copy joins the v3 host over LAN
+
+Observed: player 2 sees the game in the LAN list, joins, gets the normal MP faction and role
+screens, picks a role and is dropped to the menu with "connection to server lost". Host log:
+`Client ('Player') accepted on slot '1'`, `SendPlayerStartingData(): Player connected`,
+`PlayerJoinedTeam(): Player 1 joined team 1`, then
+`exg_game.cpp(4974): PlayerSetRole(): Player 1 joining singleplayer match with non-SP role!`,
+`exr_client.cpp(661): ParsePlayerSetRole() failed`, `RemovePlayer(): removed player 1`.
+
+Code (GOG exe, `EXG_Game::PlayerSetRole` `0x752880`): at `0x7529c7` `cmp byte [game+4],0` picks the
+SP branch; `0x7529d8 jnz 0x752b92` accepts if a global "allow any role" field is set,
+`0x7529e4 je 0x752b92` accepts the SP role, otherwise it logs and fails.
+
+v4 patch (on top of v3): `0x7529d8` `0f 85 b4 01 00 00` → `e9 b5 01 00 00 90` (always take the
+accept path in SP matches). sha256 `91e1f854...`. The joiner keeps the MP role it picks.
+
+### Test 8 (owner): v4, player 2 joins the running campaign mission
+
+Observed (owner): player 2 joins, still goes through the MP faction and role screens, gets no
+units, but sees the whole map, including every unit on it with no fog of war, and watches player 1's
+(Parker's) units move in real time when player 1 gives orders. Host log:
+`Player 1 joined team 1`, `PlayerSetRole(): Player 1 has got role INFANTRY (234881739)`, no
+rejection.
+
+Derived: a second real client is connected to the campaign server and receives the synchronized
+simulation. What is missing is per-player setup: AP/reinforcements, drop zones, fog of war (team or
+vision assignment), and anything the mission scripts do for `PLAYER_HUMAN`.
+
+## Status after session 4 (2026-10-17)
+
+Working in a GOG test copy, with four byte-level patches (v1–v4) to wic.exe:
+1. A LAN-hosted game on a campaign map runs the real campaign mission (cutscene, scripts, AI).
+2. A second client can join it and sees the live mission.
+
+Open, in rough order:
+- Player 2 control. Two options: (a) shared control: let the server accept player 2's orders for
+  player 1's units, plus a client-side selection change; (b) own forces: give player 2 AP and a drop
+  zone, set their team and vision, and teach the scripts about a second human.
+- The MP faction and role screens for the joiner.
+- The few seconds of "APCs only" before the cutscene on the host.
+- Move the patches from exe edits into a runtime proxy DLL that works on GOG and Steam.
+- Networking over the internet (LAN tested only; Spacewar relay planned).

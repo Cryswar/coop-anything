@@ -5,15 +5,15 @@
 | Engine | Masstech (Massive Entertainment), embedded Python 2.5 for mission scripts |
 | Versions tested | Steam 1.0.1.1 (b35), apps 21760 + 21910; GOG Complete Edition (Galaxy 2.0.0.3). Same build, see NOTES.md |
 | Projects | none found; research and design only (directory entry: World in Conflict gap) |
-| QA level | none |
+| QA level | none (manual owner tests of a prototype; no automated suite) |
 | Last updated | 2026-10-17 |
 
 ## Where things stand
 
-Nobody can play the campaigns in co-op today: no mod was found. The engine is unusually well
-suited to it: single player and multiplayer run the same server code, a single-player switch
-selects the mode, and every original-campaign map is also a multiplayer map. Research
-notes and experiment logs are in [NOTES.md](NOTES.md).
+No co-op campaign mod exists yet. Working prototype (GOG test copy, 2026-10-17): with four
+small exe patches, a LAN-hosted game on a campaign map runs the real campaign mission, and a second
+client can join and watch the live, synchronized mission. Player 2 cannot act yet (no units or
+reinforcements, no fog of war). Details, offsets and test logs are in [NOTES.md](NOTES.md).
 
 ## Existing work
 
@@ -71,8 +71,20 @@ Observed on the build above unless marked otherwise.
 
 ## What we changed
 
-Nothing yet. Experiments used an unmodified copy of the game; only the copy's `wic_ds.ini` and
-map cycle were edited.
+Prototype patches to a copy of the GOG `wic.exe` (offsets for that build; full detail in NOTES.md):
+
+| # | Where | Change | Result |
+|---|---|---|---|
+| v1 | `0xb3f387` | MP host `InitGame(0)` → `InitGame(1)` | host builds the campaign mission |
+| v2 | `0xb3f393`–`0xb3f3d7` | pass the single-player script folder to Python init, as single player does | mission scripts load |
+| v3 | `0xb3f7cc`–`0xb3f7e3` | create the host's local player with the single-player role and flags | host plays the mission |
+| v4 | `0x7529d8` | `PlayerSetRole` accepts any role in a single-player match | a second client can join |
+
+Pitfall found: the `-pythondebug` switch breaks every Python import in the retail build (even plain
+single player), which masked results until it was removed.
+
+Tooling: a call-tracing DLL plus launcher (own code) that logs arguments and results of chosen
+call sites; it found the failing step in one run where log reading had not.
 
 ## QA
 
@@ -89,10 +101,10 @@ Not applicable yet.
 
 ## Next steps
 
-1. Prototype: make the MP host create its game in single-player mode (the bool at `0xb3f387`)
-   on a map with a campaign twin, then join with a second client. Expect the role check and
-   lobby map/role selection to need hooks next. Ship it as a runtime hook (proxy DLL) keyed on
-   byte signatures, so it works on the GOG exe and on the Steam exe after its stub has run.
+1. Give player 2 control: shared control of player 1's units first (server order check plus
+   client selection), then own forces (AP, drop zone, team and vision, script awareness).
+   Move the patches into a runtime proxy DLL keyed on byte signatures, so it works on the GOG
+   exe and on the Steam exe after its stub has run.
 2. Script layer: replace the single `PLAYER_HUMAN` assumptions (objectives, camera, AP, area
    tests) so each human gets their own forces, or route the guest's orders through player 1
    as a fallback.
