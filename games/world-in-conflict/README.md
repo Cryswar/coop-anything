@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Engine | Masstech (Massive Entertainment), embedded Python 2.5 for mission scripts |
-| Versions tested | Steam, 1.0.1.1 (b35), apps 21760 + 21910 (Soviet Assault) in one folder |
+| Versions tested | Steam 1.0.1.1 (b35), apps 21760 + 21910; GOG Complete Edition (Galaxy 2.0.0.3). Same build, see NOTES.md |
 | Projects | none found; research and design only (directory entry: World in Conflict gap) |
 | QA level | none |
 | Last updated | 2026-10-17 |
@@ -32,10 +32,15 @@ notes and experiment logs are in [NOTES.md](NOTES.md).
 
 Observed on the build above unless marked otherwise.
 
-- **Executables.** `wic.exe` and `wic_online.exe` (Steam build) are SteamStub-wrapped: `.bind`
-  section, encrypted `.text`. Don't unpack them. `wic_ds.exe`, the dedicated server, is not
-  wrapped and holds the shared simulation, the Python bindings and the single-player mission
-  code, so static analysis uses it.
+- **Executables and builds.** The Steam `wic.exe` and `wic_online.exe` are SteamStub-wrapped:
+  `.bind` section, encrypted `.text`. Don't unpack them. The GOG Complete Edition exe is the same
+  build without the wrapper: same PE timestamp and section layout, byte-identical data sections,
+  and identical game archives except two localization files. Static analysis therefore uses the
+  GOG `wic.exe`, plus `wic_ds.exe` (identical in both stores).
+- **Play modes.** RTTI shows `EX_MultiPlayerHostMode` derives from `EX_SinglePlayerMode`: a
+  multiplayer host is the single-player mode plus a network server. The host's `InitGame` calls
+  the shared game setup with a single-player bool set to 0 (one `push 0` at `0xb3f386` in the
+  GOG exe).
 - **Archives.** `.sdf` files start with `RYS\n` and hold raw zlib streams. Scanning for zlib
   headers recovers the files; the name index is not decoded yet.
 - **Mission logic is server-side Python 2.5.** Each map has `python/server.py` (mission logic,
@@ -84,15 +89,16 @@ Not applicable yet.
 
 ## Next steps
 
-1. Make the SP host accept a second network client: either start the SP mission inside
-   `EX_MultiPlayerHostMode` with the SP flag set, or attach a real listener to the SP server.
-   This is a native hook in the client (runtime hook through a proxy DLL, no unpacking).
+1. Prototype: make the MP host create its game in single-player mode (the bool at `0xb3f387`)
+   on a map with a campaign twin, then join with a second client. Expect the role check and
+   lobby map/role selection to need hooks next. Ship it as a runtime hook (proxy DLL) keyed on
+   byte signatures, so it works on the GOG exe and on the Steam exe after its stub has run.
 2. Script layer: replace the single `PLAYER_HUMAN` assumptions (objectives, camera, AP, area
    tests) so each human gets their own forces, or route the guest's orders through player 1
    as a fallback.
 3. Transport: a Steam Spacewar relay next to the game (see
    [networking-steam-spacewar.md](../../playbook/networking-steam-spacewar.md)), not
    `steam_api.dll` inside `wic.exe`, which is already a Steam app.
-4. Check whether the GOG build (the only one still sold) can play with the Steam build: compare
-   versions and exe hashes, then try a stock LAN game.
+4. Confirm GOG and Steam builds play together: same code and data suggest yes, but a stock LAN
+   game between them has not been tried.
 5. Decode the `.sdf` name index so mission scripts can be overridden by path.

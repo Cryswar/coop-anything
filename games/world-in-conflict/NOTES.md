@@ -154,3 +154,57 @@ localhost. The relay also works unchanged if one player has the GOG build.
 - https://github.com/ubisoft/massgate
 - https://en.wikipedia.org/wiki/World_in_Conflict
 - https://worldinconflict.fandom.com/wiki/Map_and_Mod_Wiki/Before_we_start
+
+## Session 3 (2026-10-17): GOG Complete Edition vs Steam
+
+GOG Galaxy install of "World in Conflict: Complete Edition" (GOG game id 1438332414, Galaxy reports
+version 2.0.0.3).
+
+| File | SHA-256 |
+|---|---|
+| GOG wic.exe | `41017f352cabd5fb3dc2b4457727c6e32678fdbdd89e881b11a8868edba18ebc` |
+| GOG wic_online.exe | `7bb41478f3070641b7639707d72a976a2ae5c8f9ad9356ff5733610979c0b7d0` |
+| GOG wic_ds.exe | `c150494dcd3b59c4afe3cf7580619b4864cd0238a892f350f1efcedfe6ac10cf` (same as Steam) |
+
+### Observed
+
+- GOG `wic.exe` / `wic_online.exe` have no `.bind` / `.extra` sections and an unencrypted `.text`
+  (entropy 6.6). Section addresses and sizes are identical to the Steam exes.
+- Section-by-section compare of GOG vs Steam `wic.exe`: same PE timestamp (`0x4a2f7509`);
+  `.rdata`, `.data`, `.tls`, `CONST`, `.rsrc` byte-identical; only `.text` differs (Steam's is
+  encrypted) plus Steam's extra `.extra` / `.bind` sections and entry point.
+- Every shared DLL and every `.sdf` archive hashes identical, except `wicloc46.sdf` and
+  `wicloc61.sdf` (localization / GUI text). `wic_ds.ini` differs only in defaults.
+- RTTI in GOG `wic.exe` (`local/tools/rtti.py`):
+  - `EX_MultiPlayerHostMode` derives from `EX_SinglePlayerMode` (bases: EX_SinglePlayerMode,
+    EX_IPlayMode, EXCO_Persistent<EX_SinglePlayerMode>). `EX_DemoReplayMode` too.
+  - `EX_MultiPlayerJoinMode` is separate: EX_IPlayMode, `EXR_Server::IClient`.
+  - `EXG_Game` bases: WICO_IGameInfo, EXCO_IGame (subobject at +8), EXCO_Persistent<EXG_Game>.
+- `0xb405d0` (log label `EX_SinglePlayerMode::InitGame`) takes one bool; when it is 1 it applies
+  single-player setup (`singleplayer_craters`). Its only direct caller is
+  `EX_MultiPlayerHostMode::InitGame` (`0xb3f2e0`), at `0xb3f386`: `6a 00 / 8b cb / e8 ..`
+  (`push 0; mov ecx,ebx; call 0xb405d0`).
+- `0xb405d0` creates the game through `0x756990`, which allocates `0x1320b8` bytes and runs the
+  `EXG_Game` constructor `0x754f40`. The constructor stores a register argument (Ghidra: `in_AL`)
+  at `+0xC`, the byte the server's role check reads through the `EXCO_IGame` subobject
+  (`this+8`, field `+4`). The other `0x756990` caller is `WICR_GameController::InitGame`
+  (`0x768a10`), the controller used by `WICR_GameController::MapCycle` (`0x768e50`).
+
+### Derived
+
+- The Steam exe is the GOG exe plus SteamStub. Addresses found in the GOG exe should match the
+  Steam exe in memory once its stub has run (inferred: identical data sections and section layout;
+  not yet checked in memory). A runtime hook keyed on byte signatures can serve both builds.
+- Same code and same data means the two builds should talk to each other over LAN (inferred; not
+  tested).
+- Multiplayer hosting is single-player mode plus a network server. The cheapest co-op prototype:
+  make the MP host call `InitGame(1)` (the byte at `0xb3f387`, `00` → `01`) on a map with a
+  campaign twin, then join with a second client. Expected next obstacles: the role check
+  (`"joining singleplayer match with non-SP role"`), the lobby's map and role selection, and
+  scripts written for one `PLAYER_HUMAN`.
+
+### Recommendation
+
+Develop against the GOG build: static analysis works directly on the shipped exe, there is no
+DRM in the way of hooking, and it is the build new players can buy. Keep the Steam build as a
+second target through signature-checked runtime hooks (no unpacking).
