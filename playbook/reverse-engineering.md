@@ -20,6 +20,16 @@ or any public repo, unless the code is open source.
    - Bethesda: ESM/ESP records hold quests, stages and scripts; parse them into data
      you can query.
 3. **Native layer.** Decompile the exe or DLLs.
+   - If the game exe is DRM-wrapped (SteamStub shows as a `.bind` section, the entry point
+     inside it and a `.text` section with entropy near 8.0), don't unpack it. Look for a sibling
+     binary built from the same code without the wrapper: a shipped dedicated server often holds
+     the simulation, the script bindings and even single-player code. World in Conflict's
+     `wic_ds.exe` was unwrapped while `wic.exe` was not
+     ([games/world-in-conflict](../games/world-in-conflict/README.md)). Observe the client only
+     at runtime (logs, sockets, an injected DLL).
+   - Dedicated servers and tools may write logs or settings under `%USERPROFILE%\Documents`
+     even when run from a test copy. Check for new files there after each run and move them
+     into your workspace.
 
 ## Tools
 

@@ -5955,3 +5955,28 @@
   sources:
   - https://github.com/tjoaks/anchor-2s2h
   checked: '2026-10-16'
+- game: World in Conflict (with Soviet Assault)
+  year: 2007
+  engine: Masstech (Massive Entertainment)
+  project: (none found)
+  url: ''
+  other_urls: []
+  kind: gap
+  status: none
+  coop_scope: {}
+  players: unknown
+  networking: unknown
+  open_source: unknown
+  last_activity: unknown
+  qa: none
+  notes: No campaign co-op mod found. The game ships LAN multiplayer, a dedicated server and AI bots, and single player
+    runs on the same server code behind one flag; every original-campaign map is also an MP map. Research and design
+    notes in games/world-in-conflict.
+  sources:
+  - https://en.wikipedia.org/wiki/World_in_Conflict
+  - https://github.com/ubisoft/massgate
+  checked: '2026-10-17'
+  searched:
+  - 'WebSearch: World in Conflict campaign co-op mod multiplayer singleplayer missions; "World in Conflict" coop campaign
+    mod moddb; play campaign with friend co-op, 2026-10-17'
+  - 'Not checked: Massgate forums, WiC Discords, Reddit, non-English searches'
