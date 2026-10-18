@@ -19,6 +19,7 @@ sources; this page is about what carries over.
 | **RE Engine** | Resident Evil 2, 4 remakes, Dragon's Dogma 2 | Shared tooling (REFramework) across the family; RE Village is still a gap. |
 | **FromSoftware** | Elden Ring, Dark Souls Remastered, Dark Souls III, Nightreign (Seamless Co-op), Sekiro | Seamless Co-op covers several games of the family; its internals are not public, see [how co-op mods work](how-coop-mods-work.md). |
 | **Unity / XNA** | Subnautica (Nitrox), Hollow Knight (HKMP), Outer Wilds (QSB), Celeste (CelesteNet) | C# mod loaders (BepInEx, MelonLoader, Everest) make Unity games the easiest modern targets. |
+| **SAGE** (EA Los Angeles RTS) | C&C3 Tiberium Wars (campaign co-op prototype, games/command-and-conquer-3); Generals Zero Hour source is public (GPL, EA) | Lockstep with a lobby; campaign maps can run inside a lobby game if the side stripping (`prepareForMP_or_Skirmish`) and slot sides are skipped. The Generals source names most C&C3/KW/RA3 seams. Watch the per-slot anti-spoofing check when two humans share one side. |
 
 ## Rebuilt engines and decompilations
 
