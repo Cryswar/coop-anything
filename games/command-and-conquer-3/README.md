@@ -14,8 +14,9 @@ Two players can play a Tiberium Wars campaign mission together: one hosts a norm
 game (C&C Online or LAN), the other joins, and both get the campaign mission with its own sides,
 scripts, AI, objectives and in-mission cutscenes. Both control the same campaign side (shared units,
 shared money). Tested by the owner and a friend over C&C Online on GDI mission 1 (prologue): both
-had full control of units, building and placement. Mission-to-mission flow, briefings and own
-factions per player are not done. Kane's Wrath has the same engine structure but no port yet.
+had full control of units, building and placement. Missions can be won and an experimental
+mission flow advances both PCs to the next mission (not yet tested by humans). Briefing movies and
+own factions per player are not done. Kane's Wrath has the same engine structure but no port yet.
 
 ## Existing work
 
@@ -63,6 +64,14 @@ does nothing to an unknown build. Addresses are in NOTES.md.
 - **Guest orders were dropped:** the receive-side anti-spoofing check flagged the second slot acting
   for the campaign side and discarded all its commands, even on the guest's own PC (found by logging
   UI-created, sent and per-frame commands on both clients). The check is relaxed for co-op games.
+- **Missions could not be won:** missions end the classic SAGE way (scripts kill the enemy sides,
+  the victory check declares the last side standing). That check was off in co-op because the
+  campaign side failed the multiplayer elimination rule at the start. Now the check runs, but in co-op
+  a side counts as defeated only when the mission scripts kill it: the "nothing left" rule had also
+  eliminated allied AI sides (and destroyed their buildings) at the first check.
+  Test: enemy sides killed at a fixed frame on both clients -> VICTORY on both.
+- **Mission flow (experimental):** the current mission is kept in a file in the co-op profile; after a
+  victory both clients advance it to the next mission, and the next lobby game loads it.
 - **Shared selection:** an order applies to the player's logic-side selection, which both humans
   share. Each client keeps its own selection messages and re-sends them before its next order when the
   partner's selection changed in between.
@@ -94,15 +103,17 @@ click Play, host a private unranked 2-player game on any map in C&C Online (or L
 
 ## Known issues
 
-- Mission flow: after a mission both players return to the lobby and pick the next one by hand; no
-  briefings or between-mission movies; no saves.
-- GDI mission 2 (Pentagon) declared defeat after 1-2 minutes in a single-client test; not compared
-  with a real campaign run yet.
+- Mission flow: after a victory both players return to the lobby and host a new game for the next
+  mission; no briefings or between-mission movies; no saves.
+- GDI mission 2 (Pentagon), nobody playing: lost after about 40 s when Nod destroys an allied power
+  plant (the mission's own lose script). Probably normal for an idle player; not compared with a
+  single-player run. (An earlier co-op bug that lost it after 3 s is fixed, see NOTES section 14.)
 - Control groups are shared; post-game stats show odd player names.
 
 ## Next steps
 
-- Mission flow (automatic next mission, briefing movies).
-- Survey all mission scripts for references to the human side, to cost "own faction per player".
-- Check campaign difficulty in lobby games.
+- Briefing movies between missions; saves.
+- Own faction per player: see [mission-survey.md](mission-survey.md) for the script survey of all 39
+  missions and the generic rules it suggests (and the `<Local Player>` desync trap).
+- Check which campaign difficulty lobby games run (prologue: Nod money and attack forces differ).
 - Kane's Wrath port (same seams, different addresses).

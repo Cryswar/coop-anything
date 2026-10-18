@@ -261,3 +261,55 @@ Observed (LAN, two clients on one PC, msg logging on both):
   frame 642, then DO_STOP at 642, same order on both clients.
 - Posted mouse clicks still do not produce move orders in the harness; keyboard orders (S) do, since
   posted keys are now fed into the DirectInput keyboard in background mode.
+
+## 13. Mission end and mission flow (2026-10-18)
+
+Observed (TW 1.10):
+- Mission scripts end missions through objectives and by killing the enemy sides; only GDI 3-3 uses
+  `VICTORY`/`DEFEAT` and GDI 3-4 `QUICKVICTORY` (script survey, see mission-survey.md). Script actions:
+  VICTORY = type 3 -> `[0xbf0440]` (TheVictoryConditions) vtable +0x7c; DEFEAT = 4 -> +0x80;
+  PLAYER_KILL = 78 -> `0x518311` -> Player::kill `0x4a67c5`; MARK_MISSION_OBJECTIVE_COMPLETED = 536 ->
+  `0x4f79b8` -> objective setStatus(2) `0x4c900c` (EVA only, no win check). TheMissionObjectiveTracker is
+  `*0xb81560`.
+- VictoryConditions vtable `0xa6456c`: +0x38 hasWon `0x4f671f`, +0x3c hasLost `0x4f67b6`, +0x40
+  isDefeated `0x4f67f5` (+0x74 killed, +0x88 elimination rule), +0x7c victory `0x516b29` (records campaign
+  progress via `0x4e0766`/`0x4e0614`), +0x80 defeat `0x516bfb`. The update's last block calls
+  hasWon(local) -> victory, else hasLost(local) -> defeat. hasWon is last-side-standing.
+- With update on in co-op, the campaign side failed the multiplayer elimination rule at the start
+  (EndGameUI DEFEAT from `0x510279`). Fix: hook isDefeated so the local (campaign) side is never
+  eliminated by that rule; the update then stays on.
+- Test (two clients, LAN, prologue): a test-only trigger kills all other sides at frame 600 (inside the
+  lockstep dispatch, same frame on both): both clients get EndGameUI(VICTORY) via `0x51049e` at frame 611.
+- Mission flow: the current mission is the folder name in `<home>\coop_mission.txt`, read at every game
+  start; on victory both clients advance it to the next mission in missions.txt (same campaign group).
+- Movies: `Movies\1.0\Movies*.big` hold VP6 files (`g01a`, `g02ba`, ...); the mission -> movie link lives in
+  compiled campaign data. Playing them from the DLL is not done yet.
+
+## 14. GDI 2 (Pentagon) defeat traced (2026-10-18)
+
+Observed (two clients, LAN, Pentagon started directly, nobody playing):
+- 0.0.5 as first built: DEFEAT at about 15 s on both clients, same frame. Trace path: a DLL hook on the
+  script runner `0x532d6f` (thiscall, `ret 8`; arg = Script, vtable `0xa646f4`; +0x30 OrCondition list,
+  +0x34 actions, +0x38 false actions, +0x44 name) and on the single-condition check `0x528c13` (thiscall,
+  `ret 4`; condition +4 type, +0xc first parameter, AsciiString at parameter+0x10). Condition type numbers
+  come from the template table in `0x5082ec` (record stride 0x80; e.g. 4 TIMER_EXPIRED, 8 TEAM_DESTROYED,
+  15 NAMED_DESTROYED, 53 UNIT_HEALTH, 56 PLAYER_HAS_OBJECT_COMPARISON). Within an OrCondition the
+  conditions are ANDed; the OrConditions are ORed.
+- Chain: the map's lose scripts only set the flag `Mission Lost`; a script not in the map (empty name,
+  `TIMER_EXPIRED t_ShowDefeated` -> `DEFEAT`) shows the defeat a few seconds later. At frame 75 the
+  multiplayer elimination rule judged three AI sides defeated (Plyr_GDI_b, Plyr_Nod_d, Plyr_GDI_d) and the
+  victory update killed them (`0x4a67c5`), destroying their objects. Plyr_GDI_b owns the Pentagon's base
+  object `_G_B_Penta-building`; the map's "symbiotic health" scripts then set the Pentagon to 0 ->
+  NAMED_DESTROYED -> Mission Lost.
+- Fix: in co-op a side counts as defeated only after Player::kill (flag `Player+0x20c`, set by the
+  scripts' PLAYER_KILL), never by the "has nothing left" rule. After the fix no side is eliminated.
+- What remains with nobody playing: the allied power plant 1 (starts at 50%) is destroyed by Nod at
+  about 40 s and the mission is lost by its script (`G_A_POwer Plant 1 lose`). Expected for an idle
+  player; not compared with a single-player run. Pentagon has no difficulty-specific scripts.
+- Prologue power plant (owner report: bombers damaged but did not destroy it): no script destroys it;
+  a Nod attack team (`Act1_TEAM_PowerPlantAttack`) targets it, then the MCV. If the team is shot
+  before it arrives the plant can survive. Prologue difficulty scripts change Nod money and attack
+  forces only.
+- Only the first 0.0.5 build had this problem (0.0.4 had the victory update off). Before the fix any AI
+  side that failed the rule at the first check would have been killed in any mission (not checked
+  mission by mission).
