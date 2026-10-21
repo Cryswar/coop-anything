@@ -7207,3 +7207,53 @@
   - https://en.wikipedia.org/wiki/List_of_Yu-Gi-Oh!_video_games
   checked: '2026-10-20'
   made_with_coop_anything: true
+- game: 'StarCraft II: Wings of Liberty'
+  year: 2010
+  engine: Blizzard SC2 engine
+  project: SC2Coop (campaign co-op launcher)
+  url: https://github.com/cranebeaker/coop-anything/tree/main/games/starcraft-2
+  other_urls: []
+  kind: framework
+  status: alpha
+  coop_scope:
+    players_visible: yes
+    story: yes
+    enemies: yes
+    world_state: yes
+    items: shared
+  players: '2'
+  networking: steam-relay
+  open_source: no
+  last_activity: 2026-10
+  qa: automated
+  notes: External launcher that runs the retail campaign maps (WoL@Kit fan campaign format) as two-player API games on
+    the players' own installs; both share player 1's army, each has their own hub. Steam relay (Spacewar app id) or
+    direct IP with UPnP. Not released yet; smoke test of all 29 missions of one campaign on one PC plus two-PC sessions.
+  sources:
+  - https://github.com/cranebeaker/coop-anything/tree/main/games/starcraft-2
+  checked: '2026-10-21'
+  made_with_coop_anything: true
+- game: 'StarCraft II: Heart of the Swarm'
+  year: 2013
+  engine: Blizzard SC2 engine
+  project: Heart of the Swarm Co-Op (LordDz and team)
+  url: https://tl.net/forum/sc2-maps/554236-heart-of-the-swarm-co-op
+  other_urls: []
+  kind: mod
+  status: unknown
+  coop_scope:
+    players_visible: unknown
+    story: partial
+    enemies: unknown
+    world_state: unknown
+    items: unknown
+  players: '2-3'
+  networking: unknown
+  open_source: unknown
+  last_activity: 2019-12
+  qa: none
+  notes: Arcade map; the author announced its release on 2019-12-30 with individual hero and evolution choices. Current
+    build and availability not tested.
+  sources:
+  - https://tl.net/forum/sc2-maps/554236-heart-of-the-swarm-co-op
+  checked: '2026-10-16'
