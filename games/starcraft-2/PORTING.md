@@ -1,7 +1,7 @@
 # Making a StarCraft II campaign co-op-ready
 
 What the SC2Coop launcher does to a campaign by itself, what you (the map author) still have to decide or edit, and how to
-check a new campaign. Based on porting a WoL@Kit campaign (2026-10). Run the checker first:
+check a new campaign. Based on porting a WoL@Kit campaign and vanilla-based WoL mods (2026-10). Run the checker first:
 
 ```
 SC2Coop-console.exe campaign-check "<campaign folder>" report.md
@@ -61,12 +61,77 @@ The checker's "Matters for separate armies" section is the to-do list:
 - **Spatial content** you have to build in the editor: a second start location, base space and starting units for the guest.
   This can't be generated.
 
+**Design (decided 2026-10-21).** A mission opts in by having **two human (user) players** in its map. Only then does the
+launcher show the "separate armies" choice and its settings. A normal map (one human) always plays as a shared army with
+shared upgrades. In a two-human map:
+
+| Who does it | What |
+|---|---|
+| Map author | The second player's slot, start location, base space, starting forces, and the difficulty/balance for two armies |
+| Launcher (automatic) | The guest takes the author's second slot (no cloned slot). Player-1 objective checks and ownership tests also count the second player; tech unlocks for player 1 are mirrored |
+| Setting: mission-given units (rescues, reinforcements) | Discoverer (default; the player whose units triggered it), split/alternated, or duplicated |
+| Setting: money the mission gives | Duplicated (default) or split |
+| Setting: credits, research, upgrades (tied to the hub sync mode) | Shared (both use the host's progress) or separate (each player's own campaign progress and hub purchases) |
+
+**Built (2026-10-21, `SeparateArmies.cs`).** What the map needs:
+
+- A second player with control **User** in the map's player settings (any slot; the first User slot after player 1 is the
+  guest's), a race, and the units/structures you place for it. A start location is optional: after the opening the guest's
+  camera goes to its own units. Name it in the script if you like (`gv_pLAYER01_USER2 = 14;`); the launcher doesn't need it.
+- Nothing else. A two-human map is only played in co-op, so no solo fallback is needed; one-human maps stay shared army.
+
+What the launcher does with such a map:
+
+- The guest joins in that slot with that slot's race (no cloned slot).
+- Alliances: everything player 1 has with the other players (hostility, vision, help, chat, defeat, pushable) is copied to
+  the guest every second; player 1 and the guest are allies with shared vision (no shared control or spending).
+- Counting: player-1 unit groups and ownership tests count both armies, so "bring units to X", rescues and "all your units
+  are dead" (defeat only when both armies are gone) work for either player. If your script already counts the guest's
+  units itself (any `UnitGroup(..., <guest>, ...)`), this is skipped for the whole map.
+- Money and tech: every `PlayerModifyProperty*` and `TechTree*` setter for player 1 also applies to the guest (starting
+  minerals, unlocks, research); the campaign's armory upgrades are applied to the guest at start. Launcher setting
+  "Mission money": both get it (default) or split it (only mission income once under way: half each).
+- Resource pickups: Liberty pallets (game data: the pallet's `PickupMinerals100`/`PickupGas100` ability pays whoever walks
+  over it), other data pickups found in the map's or its mods' ability/effect data, and Kit's scripted
+  `libCamp_gf_DestroyCacheAndGivePlayerResources` caches: the other player gets the same amount, or half each with "split it".
+- Units the mission gives player 1 once under way (`UnitSetOwner`, `libNtve_gf_RescueUnit`, `UnitCreate`,
+  `libNtve_gf_CreateUnitsAtPoint2`, `libNtve_gf_CreateUnitsWithDefaultFacing`): launcher setting "Units the mission gives": who found them (default; the
+  player whose units are nearest), take turns, or both get them. Heroes, and anything given before the mission is under
+  way or during a cinematic, stay player 1's. Vision of a unit shared with player 1 is shared with the guest too.
+- Not yet: separate credits/research/upgrades from each player's own hub (both use the host's campaign progress).
+
+The settings row appears in the launcher only when the campaign folder has at least one such map. `SC2_COOP_SEPARATE=1`
+still tries the same thing on a normal one-human map (cloned slot plus copies of player 1's starting units).
+
 ### Other campaigns
 
 - **WoL@Kit-style campaigns** (story map TStory01 + `libWoLC_gf_LaunchMission`): should work as is; run the checker and the
   smoke test (below).
 - **Blizzard's own campaigns and other mods:** the hub launch hook and bank list depend on the campaign library. Progress lives
   in banks too, but under different names and possibly signed. Expect to add a hub adapter for that library.
+- **Vanilla-based WoL mods: supported** (2026-10-21, tested on a vanilla-based community campaign). The launcher tells the libraries apart by the hub's
+  launch calls and the mission's library calls; nothing to set. Hub: `libCamp_gf_LaunchMission` is replaced by the
+  launcher's copy of it (A/B choice, briefing, PrepareForMission, game over) that records the final pick; `-cooplaunch
+  TRaynor01` works (after the mission briefing plays). Missions: `-coopwin/-coopwinnow/-cooplose` use libCamp's names,
+  `-coopobj <objective id> [fail]` takes the engine objective id. Not yet: Blizzard's Mission Archives replays and the
+  guest's campaign tech in separate armies (see the table).
+- Assessment (2026-10-21, four vanilla-based WoL mods): all keep
+  Blizzard's hub and campaign library (`libCamp`, Liberty/LibertyStory), with the same five `libCamp_gf_LaunchMission(mapID,
+  simulation, difficulty)` calls in the hub script, so one "vanilla" adapter covers them. Kit's libraries are a renamed copy of
+  libCamp, so most hooks map one to one:
+
+  | Launcher hook (Kit) | Vanilla | Notes |
+  |---|---|---|
+  | `libWoLC_gf_LaunchMission(name, ...)` | `libCamp_gf_LaunchMission(mapID, ...)` | Mission id is an enum; file name from `libCamp_gv_tS_MapFile[id]`. A/B choice missions (THanson03, TTosh03, TValerian02) pick inside the library. |
+  | `libWCMI_gf_EndCampaignMission` | `libCamp_gf_EndCampaignMission` | Same: victory shows the score screen, defeat ends the game. |
+  | `libWCMI_gf_ZS_SetMissionObjectiveState` | none needed | Vanilla missions call `ObjectiveSetState` themselves (already rerouted); libCamp only stores a number. |
+  | `libWCMI_gf_GameOver/GameIsOver`, `libWCMI_gt_WM_VictoryContinue` (test commands) | `libCamp_gf_RunMissionVictorySequence`, score-screen continue | Needs its own game-over flag. |
+  | Banks (BankList.xml) | TCampaign, CampaignPS, TStory01, one per mission | Plain unsigned player-1 banks; the existing sync works as is. |
+  | `libWoLC_gf_WC_ApplyTech(player)` (separate armies) | `libCamp_gf_TS_UpdateTechStates()` | Player 1 only; the guest's campaign tech needs another way (open). |
+  | Mission Archives (Kit library) | Blizzard's archives | Not looked at yet. |
+
+  Runtime (2026-10-18): Blizzard's TStory01, repacked, runs as an API game (intro, mission select, launch); `RequestGameInfo`
+  on it crashed SC2.
 
 ## Testing a ported campaign
 
