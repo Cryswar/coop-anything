@@ -5,12 +5,12 @@
 | Engine | Blizzard SC2 engine (Galaxy scripts, data XML, MPQ maps/mods); s2client API in the retail client |
 | Versions tested | Battle.net retail 5.0.17.98310 (data version 9C1F3D3D30CA252E33FC67CA05CBE1EA), enUS, Windows 10/11 |
 | Projects | SC2Coop launcher (this write-up; the launcher code is not published yet) |
-| QA level | automated (local two-client smoke test of every mission of several campaigns) + two-PC sessions by testers |
+| QA level | automated (local two-client smoke test: all 29 missions of one WoL@Kit campaign and of three campaigns on Blizzard's scripts, 4 missions of a fourth) + two-PC sessions by testers |
 | Last updated | 2026-10-22 |
 
 ## Where things stand
 
-A working prototype, not released: the launcher code is not published yet, so nobody outside the test group can play
+A prototype, not released: the launcher code is not published yet, so nobody outside the test group can play
 it. With it, two players play Wings of Liberty campaign missions together over Steam (Valve's free Spacewar app id as a
 relay) or a direct connection, in two kinds of custom campaigns: WoL@Kit fan campaigns, and campaigns that keep
 Blizzard's own campaign scripts (most WoL mods). Both share one army (player 1), or, on maps made for it, each has their
@@ -83,10 +83,12 @@ The SC2Coop launcher (C#, .NET Framework; no game files are shipped, everything 
 ## QA
 
 - **Smoke test** (one PC, two real clients, copy of the install, test hooks `SC2_COOP_TEST_LAUNCH`/`SC2_COOP_TEST_WIN`):
-  every mission launched from the hub by chat command, won with `-coopwinnow`, back to both hubs. A 29-mission WoL@Kit
-  campaign passed (2026-10-20). On a campaign that keeps Blizzard's scripts, four missions passed so far (2026-10-21);
-  full runs of three such mods are in progress. Checks: both players join, API status stays "in game" until the win, the
-  mission ends normally, banks sync, both hubs reopen.
+  each mission launched from the hub by chat command, won with `-coopwinnow`, back to both hubs. Passed: all 29 missions
+  of one WoL@Kit campaign (2026-10-20) and all 29 missions of each of three campaigns that keep Blizzard's scripts
+  (2026-10-22; two missions of one campaign passed on a second try after a first load ran past the 3-minute join limit,
+  and one run was resumed after Windows Defender quarantined the test exe). On a fourth such campaign, 4 missions
+  (2026-10-21). A/B choice missions were launched directly, skipping the choice dialog. Checks: both players join, API
+  status stays "in game" until the win, the mission ends normally, banks sync, both hubs reopen.
 - **Targeted tests** (one PC, test hooks): objective completion keeps both clients in game; a crash of either client
   returns both to the hub with banks intact (a truncated bank is restored); Stop and a lost connection end every wait;
   a setup mismatch is reported on both sides; cutscene camera identical on both clients; a guest-only Esc skips;

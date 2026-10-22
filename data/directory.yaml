@@ -7247,7 +7247,7 @@
   url: https://github.com/cranebeaker/coop-anything/tree/main/games/starcraft-2
   other_urls: []
   kind: framework
-  status: alpha
+  status: prototype
   coop_scope:
     players_visible: yes
     story: yes
@@ -7262,8 +7262,10 @@
   notes: External launcher that runs the retail Wings of Liberty campaign maps of custom campaigns (WoL@Kit fan campaigns
     and mods that keep Blizzard's campaign scripts) as two-player games through Blizzard's s2client API, on each player's
     own install; both share player 1's army (or, on maps made for it, each has their own), each has their own hub.
-    Steam relay (Spacewar app id) or direct IP with UPnP. The launcher code is not published yet; tested with a
-    one-PC smoke test of every mission of several campaigns and two-PC sessions by testers.
+    Steam relay (Spacewar app id) or direct IP with UPnP. The launcher code is not published yet. One-PC smoke test
+    (each mission launched from the hub, won by test command, back to the hub) passed for all 29 missions of one
+    WoL@Kit campaign and of three campaigns on Blizzard's scripts, and 4 missions of a fourth; two-PC sessions by
+    testers.
   sources:
   - https://github.com/cranebeaker/coop-anything/tree/main/games/starcraft-2
   - https://github.com/Blizzard/s2client-proto

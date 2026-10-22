@@ -140,11 +140,24 @@ Built: the hub's `libCamp_gf_LaunchMission` calls go to a copy of the library fu
 `PrepareForMission`, game over) that records the mission it finally launches; test commands use libCamp's names.
 
 Observed (one PC): hub, then four missions (including a Protoss one), each won and back to both hubs; a WoL@Kit
-campaign regression run passed. Full smoke runs of three vanilla-based mods are in progress.
+campaign regression run passed.
 
 Pitfall found on the way: a joining client that is killed keeps its copy of the shared mission map. When the next
 session saved a different map under the same name, the joiner stored it as "~00" but loaded the stale copy, and every
 join failed with ChecksumError (11) after the 3-minute wait. Map names now include a hash of the content.
+
+## 2026-10-22: smoke tests of three more campaigns on Blizzard's scripts
+
+Observed (one PC, every mission launched from the hub with `-cooplaunch`, won with `-coopwinnow`, back to both hubs;
+A/B choice missions launched directly, skipping the choice dialog):
+- Campaign 1: 29/29.
+- Campaign 2: 27/29 on the first run. The two Char missions (TValerian02A/B), run back to back, never finished the
+  host's load within the 3-minute join limit. Both passed on a second try (one joined in about 20 s).
+- Campaign 3: 2/29 before Windows Defender quarantined the test exe as the third mission joined; the remaining 27
+  passed on a rebuilt exe, so 29/29.
+
+Derived: all three campaigns run every mission in co-op without changes to the campaigns. Unknown: why the first load
+of the two Char missions ran past 3 minutes; it didn't happen again.
 
 ## Open questions
 
