@@ -7124,7 +7124,7 @@
   made_with_coop_anything: true
 - game: 'Spider-Man: Friend or Foe'
   year: 2007
-  engine: Vicarious Visions Alchemy
+  engine: unknown
   project: 'Spider-Man: Friend or Foe Co-op (Co-op Anything Discord)'
   url: https://discord.com/channels/1561411702082510879/1562185850777772152
   other_urls: []
@@ -7137,33 +7137,33 @@
   last_activity: 2026-10
   qa: none
   notes: 'Online co-op in development by a dev on the Co-op Anything Discord: each player on their own PC and screen, with
-    keyboard or controller, without Parsec or Steam Remote Play. No public build yet.'
+    keyboard or controller, without Parsec or Steam Remote Play. No public build yet. Relationship to the separately listed native research project and its exact engine identity are unverified.'
   sources:
   - https://discord.com/channels/1561411702082510879/1562185850777772152
   - https://www.pcgamingwiki.com/wiki/Spider-Man%3A_Friend_or_Foe
   checked: '2026-10-20'
   made_with_coop_anything: true
 - game: 'Deep Rock Galactic: Survivor'
-  year: 2025
-  engine: Unity
-  project: 'Deep Rock Galactic: Survivor Co-op (Co-op Anything Discord)'
-  url: https://discord.com/channels/1561411702082510879/1562186471937413190
+  year: 2024
+  engine: Unity 6 (IL2CPP)
+  project: drg-survivor-coop
+  url: https://github.com/Reudo/drg-survivor-coop
   other_urls: []
   kind: mod
   status: prototype
-  coop_scope: {}
-  players: unknown
-  networking: unknown
-  open_source: unknown
+  coop_scope:
+    players_visible: partial
+  players: '2'
+  networking: direct-ip
+  open_source: 'yes (MIT)'
   last_activity: 2026-10
-  qa: none
-  notes: In development by a dev on the Co-op Anything Discord, who posts progress in the project's topic there. No public
-    build yet.
+  qa: automated
+  notes: Host-authoritative BepInEx/LiteNetLib prototype, direct IP only. The automated runs use two
+    clients on ONE PC; the first real two-PC test went badly, so treat it as experimental. Details in
+    games/deep-rock-galactic-survivor/.
   sources:
-  - https://discord.com/channels/1561411702082510879/1562186471937413190
-  - https://www.pcgamingwiki.com/wiki/Deep_Rock_Galactic%3A_Survivor
-  checked: '2026-10-20'
-  made_with_coop_anything: true
+  - https://github.com/Reudo/drg-survivor-coop
+  checked: '2026-10-21'
 - game: Little Nightmares
   year: 2017
   engine: Unreal Engine 4
@@ -7257,3 +7257,371 @@
   sources:
   - https://tl.net/forum/sc2-maps/554236-heart-of-the-swarm-co-op
   checked: '2026-10-16'
+- game: 'Middle-earth: Shadow of War'
+  year: 2017
+  engine: Firebird (LithTech derivative)
+  project: (none found)
+  url: ''
+  other_urls: []
+  kind: gap
+  status: none
+  coop_scope: {}
+  players: unknown
+  networking: unknown
+  open_source: unknown
+  last_activity: unknown
+  qa: none
+  notes: No co-op or multiplayer mod found; the game's online features (Vendettas, Online Conquest) are asynchronous only.
+    JustAddMP/ShadowOfWar is a placeholder repo ("planned", README only, 2026-10-17). Research and reverse-engineering
+    notes for Steam build 3095001 (test-copy isolation, debug-print capture, Nemesis event, death, promotion and RNG
+    functions with signatures) are in games/shadow-of-war; claim issue cranebeaker/coop-anything#93.
+  sources:
+  - https://github.com/JustAddMP/ShadowOfWar
+  - https://twinfinite.net/?p=305996
+  - https://github.com/cranebeaker/coop-anything/issues/93
+  checked: '2026-10-20'
+  searched:
+  - 'Web search (several phrasings: co-op mod, multiplayer mod, coop campaign) for Shadow of War and Shadow of Mordor,
+    2026-10-20'
+  - GitHub repository search "shadow of war" (first 30 results read), 2026-10-20
+  - Nexus mod pages (automated fetch blocked, 403; search-result text only), Steam forum threads via search, 2026-10-20
+  - Not searched yet; Reddit, ModDB, the game's modding Discord, non-English sources
+- game: Graveyard Keeper
+  year: 2018
+  engine: Unity 2020.3 (Mono)
+  project: Back From The Grave
+  url: https://github.com/ZlordHUN/GYK-Back-From-The-Grave
+  other_urls: []
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: 'yes'
+    enemies: 'yes'
+    world_state: 'yes'
+    items: per-player
+  players: '2'
+  networking: steam-relay
+  open_source: 'yes'
+  last_activity: 2026-09
+  qa: automated
+  notes: BepInEx 5 + Harmony, host-authoritative, over Steam lobbies and P2P with its own reliable layer, plus LAN
+    discovery. The host's save is sent to the client. README lists shared time, weather, quests, crafting, world
+    objects, combat, drops, zones, workers, dungeons, fishing, dialogue and cutscenes, and DLC support; each player
+    keeps their own inventory. Latest release 1.2.0 Beta (2026-09-04). A 9-test two-client suite (join, shared intro
+    cutscene, movement, sleep, eating from a quick slot, ping) passes on 432b1d0 plus three fixes sent upstream as
+    pull requests; without them a client can't use food from its own inventory (issue 22). MIT. Write-up in
+    games/graveyard-keeper.
+  sources:
+  - https://github.com/ZlordHUN/GYK-Back-From-The-Grave
+  - https://github.com/ZlordHUN/GYK-Back-From-The-Grave/releases/tag/Beta1-2-0
+  - https://github.com/ZlordHUN/GYK-Back-From-The-Grave/issues/22
+  checked: '2026-10-20'
+- game: Graveyard Keeper
+  year: 2018
+  engine: Unity 2020.3 (Mono)
+  project: graveyard-keeper-multiplayer
+  url: https://github.com/Zonda001/graveyard-keeper-multiplayer
+  other_urls: []
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: 'no'
+    enemies: 'no'
+    world_state: partial
+    items: per-player
+  players: '2'
+  networking: steam-relay
+  open_source: 'yes'
+  last_activity: 2026-09
+  qa: community-reports
+  notes: BepInEx 5 + Harmony over a friends-only Steam lobby and P2P, with its own reliability layer. README lists
+    movement, time, chopping, foraging, garden beds, graves, corpse carrying, building, crafting, shared chests and
+    weather; the second player has a personal save and their own quest journal over the host's world, and NPC
+    villagers and dungeon mobs are not synced yet. Latest build v0.1.5-test2 (2026-08-30, pre-release). Players
+    report a client desync with NullReferenceException spam, a host soft lock and large-item duplication. The repo
+    ships Steamworks.NET.dll and a 14 KB Stitch.dll in Multiplayer/lib. The author also wrote the reliable transport
+    in Back From The Grave. MIT.
+  sources:
+  - https://github.com/Zonda001/graveyard-keeper-multiplayer
+  - https://github.com/Zonda001/graveyard-keeper-multiplayer/releases/tag/v0.1.5-test2
+  - https://github.com/Zonda001/graveyard-keeper-multiplayer/issues
+  - https://github.com/ZlordHUN/GYK-Back-From-The-Grave/pull/9
+  checked: '2026-10-20'
+- game: MDK2 HD
+  year: 2011
+  engine: BioWare in-house (MDK2), OpenGL 3, Lua 3.1 scripting
+  project: mdk2-coop
+  url: https://github.com/TommoDotCommo/mdk2-coop
+  other_urls: []
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: partial
+    enemies: 'yes'
+    world_state: partial
+    items: shared
+  players: up to 16 (tested with 8)
+  networking: steam-relay
+  open_source: 'yes'
+  last_activity: 2026-10
+  qa: automated
+  notes: Native dinput8.dll bridge plus Lua injected through settings.lua. The host runs the world; clients mirror
+    enemies, replay shots including delayed Doganboy grenades, share pickups, doors and checkpoints, follow level loads, and revive at a partner when
+    they go down. Steam friends-only lobbies (invite or lobby ID, no port forwarding) or direct UDP. Co-op saves and reconnect after a crash.
+    Text chat, pings, proximity voice, difficulty presets, controls presets, a launcher, couch (split-screen) co-op. Installer and a v0.1.0-alpha
+    pre-release; master is ahead of it. Automated checkpoint sweep of all 96 checkpoints with two real clients and a
+    host/client state diff (before the N-player change), plus 3- and 8-player suites; feature suites for the newer parts.
+  sources:
+  - https://github.com/TommoDotCommo/mdk2-coop
+  - https://store.steampowered.com/app/213350/
+  checked: '2026-10-22'
+  made_with_coop_anything: true
+- game: Resident Evil 2 (2019 remake)
+  year: 2019
+  engine: RE Engine
+  project: RE2 Party Mode
+  url: https://www.nexusmods.com/residentevil22019/mods/3024
+  other_urls: []
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: partial
+    enemies: 'yes'
+    world_state: partial
+    items: per-player
+  players: 2-4
+  open_source: unknown
+  last_activity: 2026-10
+  qa: none
+  notes: Local split-screen only, built on Local Couch Co-op. REFramework Lua script plus a small pad DLL spawns up to
+    three extra player characters, each with its own camera and screen quarter, inventory and settings. Shared weapon and
+    ammo pickups, key and story items go to player 1, enemies target the nearest player, revive when downed, each
+    player's room stays loaded within player 1's area. Test build v0.5.0.
+  sources:
+  - https://www.nexusmods.com/residentevil22019/mods/3024
+  checked: '2026-10-21'
+- game: 'The Elder Scrolls IV: Oblivion'
+  year: 2006
+  engine: Gamebryo
+  project: SplitScreen for Oblivion
+  url: https://www.nexusmods.com/oblivion/mods/56734
+  other_urls: []
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: partial
+    enemies: 'yes'
+    world_state: 'yes'
+    items: per-player
+  players: '2'
+  open_source: partial
+  last_activity: 2026-10
+  qa: none
+  notes: Local split-screen only, for the 2006 GOTY Steam build with xOBSE 22. A C++ xOBSE plugin draws the world twice,
+    once per player camera, and gives player 2 (an NPC to the game) the player's rules where the engine only knew one
+    player. One world, one time of day, player 2 on a leash around player 1, quests and journal are player 1's. Beta
+    0.9.1. Announced as MPL-2.0 with source on GitHub to follow; no repo found at check time.
+  sources:
+  - https://www.nexusmods.com/oblivion/mods/56734
+  checked: '2026-10-21'
+- game: 'Call of Duty: Black Ops III'
+  year: 2015
+  engine: IW engine (Call of Duty, Treyarch fork)
+  project: BO3 4-Player Local Splitscreen on PC
+  url: https://www.nexusmods.com/callofdutyblackops3/mods/53
+  other_urls:
+  - https://github.com/LocalPlayer123/BO3-4-Player-Local-Splitscreen-on-PC
+  kind: mod
+  status: partial
+  coop_scope:
+    players_visible: 'yes'
+    story: unknown
+    enemies: 'yes'
+    world_state: 'yes'
+    items: per-player
+  players: 2-4
+  open_source: 'yes'
+  last_activity: 2026-10
+  qa: community-reports
+  notes: Raises the PC game's own 2-player local split screen to 4, as on console, for offline Zombies and Multiplayer
+    with bots. An ezz BOIII client plugin relocates every per-local-client array that is [2] on PC to a [4] copy and
+    widens the loops, using the PS4 build as the reference. Public domain (The Unlicense), with a list of client changes
+    for native support.
+  sources:
+  - https://www.nexusmods.com/callofdutyblackops3/mods/53
+  - https://github.com/LocalPlayer123/BO3-4-Player-Local-Splitscreen-on-PC
+  checked: '2026-10-21'
+- game: 'Spider-Man: Friend or Foe'
+  year: 2007
+  engine: unknown
+  project: Official Windows local co-op
+  url: https://investor.activision.com/static-files/d8459280-fceb-49b0-9210-86bb7010c3d3
+  kind: official
+  status: official
+  coop_scope:
+    players_visible: true
+    story: true
+    enemies: unknown
+    world_state: unknown
+    items: unknown
+  players: '2 (one PC)'
+  networking: unknown
+  open_source: unknown
+  last_activity: '2007-10'
+  qa: none
+  notes: >-
+    Published two-player local co-op on one computer; contemporary PC reviews report
+    no native online play. The separate research entries do not change this scope.
+  sources:
+  - https://investor.activision.com/static-files/d8459280-fceb-49b0-9210-86bb7010c3d3
+  - https://www.swiftworld.net/2007/10/13/pc-spider-man-friend-or-foe-review/
+  - https://www.gamespot.com/reviews/spider-man-friend-or-foe-review/1900-6180451/
+  checked: '2026-10-20'
+- game: 'Spider-Man: Friend or Foe'
+  year: 2007
+  engine: unknown
+  project: Friend or Foe Online (native Windows research)
+  url: https://github.com/IlkinQafarov/spider-man-friend-or-foe-online
+  other_urls:
+  - https://github.com/cranebeaker/coop-anything/issues/71
+  kind: mod
+  status: prototype
+  coop_scope:
+    players_visible: unknown
+    story: unknown
+    enemies: unknown
+    world_state: unknown
+    items: unknown
+  players: '2 (target)'
+  networking: unknown
+  open_source: 'yes'
+  last_activity: '2026-10'
+  qa: none
+  notes: >-
+    Source-only Windows prototype targeting two independent clients. English/Russian
+    bot checks used two processes on one PC and mock transport; Steam delivery and
+    complete co-op remain unverified. No playable release.
+  sources:
+  - https://github.com/IlkinQafarov/spider-man-friend-or-foe-online
+  - https://github.com/IlkinQafarov/spider-man-friend-or-foe-online/blob/main/docs/STATUS.md
+  - https://github.com/cranebeaker/coop-anything/issues/71
+  - https://partner.steamgames.com/doc/features/multiplayer/networking
+  checked: '2026-10-21'
+  up_for_adoption: false
+  made_with_coop_anything: true
+- game: Ghostrunner
+  year: 2020
+  engine: Unreal Engine 4
+  project: (none found)
+  url: ''
+  other_urls: []
+  kind: gap
+  status: none
+  coop_scope: {}
+  players: unknown
+  networking: unknown
+  open_source: unknown
+  last_activity: unknown
+  qa: none
+  notes: >-
+    No co-op or multiplayer mod found for Ghostrunner or Ghostrunner 2 on any platform. The
+    GOG build is Unreal Engine 4.26; engine networking and runtime hook findings are written
+    up in games/ghostrunner.
+  sources:
+  - https://docs.ue4ss.com/dev/patternsleuth-games.html
+  - https://support.505games.com/support/solutions/articles/150000147366/
+  checked: '2026-10-21'
+  searched:
+  - 'GitHub repo+code search (ghostrunner, ghostrunner coop/multiplayer), 2026-10-21'
+  - 'Nexus Mods Ghostrunner + Ghostrunner 2 hubs, GameBanana, ModDB, 2026-10-21'
+  - 'Steam forums, Steam appdetails API, Reddit r/GhostRunner, YouTube, general web, 2026-10-21'
+  - 'UE4SS CustomGameConfigs list: no Ghostrunner entry, 2026-10-21'
+  - 'Local binary triage of the shipping exe and pak footer, 2026-10-21'
+- game: Dave the Diver
+  year: 2023
+  engine: Unity
+  project: Dave the Diver Co-op Setup (FireTva)
+  url: https://github.com/FireTva/dave-the-diver-coop
+  other_urls:
+  - https://github.com/S1ii/Coop-Divers
+  - https://github.com/cranebeaker/coop-anything/issues/42
+  kind: mod
+  status: prototype
+  coop_scope:
+    players_visible: partial
+    story: 'no'
+    enemies: unknown
+    world_state: 'no'
+    items: unknown
+  players: '2'
+  networking: unknown
+  open_source: 'yes'
+  last_activity: 2026-10
+  qa: none
+  notes: Windows installer (BepInEx 6 IL2CPP plus .NET runtime, checksum-verified) for the Coop-Divers online
+    mod, plus a separate experimental Steam-invite prototype with friends-only lobbies and a host/join overlay,
+    and a Linux/Steam Deck (Proton) install script. In the prototype the partner avatar only mirrors movement on
+    the boat and in the sushi bar; world and story state are not shared. The README says a two-client connection
+    has not been verified. MIT.
+  sources:
+  - https://github.com/FireTva/dave-the-diver-coop
+  - https://github.com/cranebeaker/coop-anything/issues/42
+  checked: '2026-10-21'
+  made_with_coop_anything: true
+- game: World of Goo
+  year: 2008
+  engine: 2D Boy in-house ("Boy" framework, SDL2 + OpenGL)
+  project: World of Goo co-op
+  url: https://github.com/dobrodeetel/world-of-goo-coop
+  other_urls:
+  - https://github.com/cranebeaker/coop-anything/tree/main/games/world-of-goo
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: partial
+    enemies: 'yes'
+    world_state: 'yes'
+    items: shared
+  players: '2'
+  networking: ''
+  open_source: 'yes'
+  last_activity: '2026-10'
+  qa: community-reports
+  notes: Local two-player split screen on one PC for the Steam 1.5 build (20824155); player 1 mouse, player 2 gamepad. The PC exe still holds the Wii version's multi-cursor code (four mice, four cursors, per-player held balls); an SDL2.dll proxy feeds the second mouse from a pad and renders levels twice with a camera per half, one shared simulation. Settings in wogcoop.ini, reloaded live. Tested by the owner on chapter 1 (mouse + DualSense) plus scripted bot checks; other chapters, the time bug with two players and menus are unchecked. MIT.
+  sources:
+  - https://github.com/dobrodeetel/world-of-goo-coop
+  - https://github.com/cranebeaker/coop-anything/tree/main/games/world-of-goo
+  - https://www.co-optimus.com/game/514/wiiware/world-of-goo.html
+  checked: '2026-10-21'
+  made_with_coop_anything: true
+- game: The Godfather II
+  year: 2009
+  engine: Visceral Engine
+  project: (none found)
+  url: ''
+  other_urls: []
+  kind: gap
+  status: none
+  coop_scope: {}
+  players: unknown
+  networking: unknown
+  open_source: unknown
+  last_activity: unknown
+  qa: none
+  notes: No PC story-campaign co-op project surfaced; the restored match multiplayer and the SE script extender are not campaign co-op. Research on branch game/the-godfather-ii (claim issue #78) has the game booting in a disposable copy from an unverified third-party executable and an own-code ASI plugin reading the player transform. No playable co-op yet.
+  sources:
+  - https://www.pcgamingwiki.com/wiki/The_Godfather_II
+  - https://www.nexusmods.com/thegodfather2/mods/95
+  - https://www.nexusmods.com/thegodfather2/mods/40
+  - https://www.ign.com/articles/2009/03/18/the-godfather-ii-gets-multiplayer-mode
+  checked: '2026-10-20'
+  searched:
+  - 'Repo DIRECTORY.md and games; public GitHub issue/PR and repository search for Godfather 2 / Godfather II co-op and multiplayer, 2026-10-20'
+  - 'English web searches: Godfather II co-op campaign, co-op mod, online co-op, multiplayer mod; checked Nexus, ModDB, GameBanana, GameFAQs results and PCGamingWiki, 2026-10-20'
+  - 'Not checked: game Discord, Steam guides in depth, Archive.org; attempted Russian, German, Italian and Spanish queries were rate-limited (HTTP 429)'

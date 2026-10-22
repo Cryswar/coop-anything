@@ -7,6 +7,11 @@
 - Local Steam installation found; executable metadata identifies CP 1.75.14 and x86. Private identity evidence is in `local/identity.json`.
 - Parallel Universe files are present. The installation must not be described as clean vanilla.
 - Upstream `detect_engine` returns no match for this installation. It has no Genome signature; this does not contradict the SDK's identification of Gothic 3 as Genome.
+  2026-10-21: this branch adds a Genome signature (`SharedBase.dll` plus `Engine.dll`, evidence also lists
+  `Game.dll`, `Script.dll`, `Projects_compiled.pak`) and a Gothic 3 SDK hooking hint. Checked: both isolated
+  test copies now return `Genome (Piranha Bytes)` with the four Gothic 3 projects as same-engine projects, also
+  through the stdio server; the repo and mod source folders and a synthetic Source layout (`engine.dll` without
+  `SharedBase.dll`) do not. Not checked: other Genome games (Risen, ELEX), whose file layout is unknown here.
 - Isolated installation copy created. Initial preparation had no save isolation; the continuation below supersedes that status.
 
 ## Searched

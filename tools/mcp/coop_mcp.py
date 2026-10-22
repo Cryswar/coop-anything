@@ -123,6 +123,10 @@ SIGNATURES = [
     ("Volition (.vpp_pc archives, engine family unresolved)", None,
      lambda f, d: _magic(f, ".vpp_pc", b"\xce\x0a\x89\x51")),
     ("RE Engine", "RE Engine", lambda f, d: _ext(f, "re_chunk_000.pak")),
+    # Gothic 3: SharedBase.dll next to Engine.dll, Game.dll and Script.dll, data in Projects_compiled.pak.
+    ("Genome (Piranha Bytes)", "Genome",
+     lambda f, d: _has(f, "sharedbase.dll", "engine.dll", "game.dll", "script.dll", "projects_compiled.pak")
+     if _has(f, "sharedbase.dll") and _has(f, "engine.dll") else None),
     ("id Tech 4", "id Tech 2 to 4", lambda f, d: _ext(f, ".pk4")),
     ("id Tech 3 (or derived)", "id Tech 2 to 4", lambda f, d: _ext(f, ".pk3")),
     ("Quake / id Tech 2", "id Tech 2 to 4", lambda f, d: _has(f, "pak0.pak") if ("id1" in d or "baseq2" in d) else None),
@@ -156,6 +160,8 @@ HOOK_TOOLS = {
                                 "-InitLuaLine: to run your Lua at startup, OnRenderDebug as a per-frame hook, "
                                 "a proxy DLL to reuse the exe's Lua Net library",
     "RenderWare": "ASI plugins (Ultimate ASI Loader), plugin-sdk for GTA III, Vice City and San Andreas, CLEO scripts in GTA",
+    "Genome (Piranha Bytes)": "the unofficial Gothic 3 SDK (C++ headers and import libraries), a native plugin DLL in scripts/ "
+                              "with a ScriptInit export, wrapping named game scripts (AddHitPoints, GetAttitude)",
     "Java (JVM)": "a -javaagent (java.lang.instrument) loaded into the unmodified game JVM, the game's own public classes "
                   "and event bus as hook points (ByteBuddy or ASM only where no public seam exists), javap from the "
                   "bundled JDK for API facts, a decompiler (CFR, Vineflower) to read the logic",
@@ -365,7 +371,7 @@ TOOLS = {
                   {"name": ("string", "skill name")}, ["name"]),
     "get_game": (t_get_game, "Read the write-up for a game that has been worked on (see list_docs for slugs).",
                  {"slug": ("string", "folder name under games/")}, ["slug"]),
-    "get_test_tool": (t_get_test_tool, "Read the README of a co-op sync test tool (chaos, flight, fuzz, ownership, fakeworld, gameslot, gamepool, scenarios, bots, animcheck; list_docs lists them).",
+    "get_test_tool": (t_get_test_tool, "Read the README of a co-op sync test tool (chaos, flight, fuzz, ownership, fakeworld, gameslot, gamepool, scenarios, bots, animcheck, bridge, inspect, hotreload, mutants, buildlock; list_docs lists them).",
                       {"name": ("string", "folder name under tools/")}, ["name"]),
     "validate_entry": (t_validate_entry, "Check a new or edited directory entry (YAML text) against the schema before contributing it.",
                        {"entry_yaml": ("string", "one entry as YAML")}, ["entry_yaml"]),

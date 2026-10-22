@@ -14,7 +14,8 @@ from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
 SUITES = ["chaos", "flight", "ownership", "fakeworld", "fuzz",
-          "gameslot", "gamepool", "scenarios", "bots", "animcheck"]
+          "gameslot", "gamepool", "scenarios", "bots", "animcheck",
+          "bridge", "inspect", "hotreload", "mutants", "buildlock"]
 
 
 def run(name):
