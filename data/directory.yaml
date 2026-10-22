@@ -1230,6 +1230,34 @@
   sources:
   - https://farcry1.itch.io/far-cry-advanced-version
   checked: '2026-10-16'
+- game: Far Cry
+  year: 2004
+  engine: CryEngine 1
+  project: FarCryCoop
+  url: https://github.com/Bantila/FarCryCoop/tree/main
+  other_urls: []
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: yes
+    story: partial
+    enemies: yes
+    world_state: partial
+    items: per-player
+  players: 2-4
+  networking: direct-ip
+  open_source: yes
+  last_activity: 2026-10
+  qa: none
+  notes: Stock campaign maps as a listen or dedicated server; Lua mod pak plus an ASI that hooks CryGame.dll 1.4
+    (snapshot budget, area triggers for remote players). Also written, but untested in game (joining through a Steam Spacewar relay,
+    the launcher lobby and player shirt colors). 0.2 beta, 2 players checked by hand. Host saves (autosave at checkpoints, save and load commands) keep players and dead enemies, not mission progress. No helicopters or cutscenes for clients. MIT license.
+    Write-up in games/far-cry.
+  sources:
+  - https://github.com/Bantila/FarCryCoop/tree/main
+  - https://github.com/Bantila/FarCryCoop/blob/main/games/far-cry/NOTES.md
+  checked: '2026-10-22'
+  made_with_coop_anything: true
 - game: Crysis
   year: 2007
   engine: CryEngine 2
@@ -7668,3 +7696,64 @@
   - https://github.com/Gumpolas/TooTawersRecomp
   checked: '2026-10-21'
   made_with_coop_anything: true
+- game: Little Inferno
+  year: 2012
+  engine: Tomorrow Corporation in-house (C++, Direct3D 11, Box2D)
+  project: Little Inferno co-op
+  url: https://github.com/dobrodeetel/little-inferno-coop
+  other_urls:
+  - https://github.com/cranebeaker/coop-anything/tree/main/games/little-inferno
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: 'yes'
+    story: 'yes'
+    world_state: 'yes'
+    items: shared
+  players: '2'
+  networking: ''
+  open_source: 'yes'
+  last_activity: '2026-10'
+  qa: community-reports
+  notes: Local two-player co-op on one PC for the Steam build 10124709 (2.0.3); player 1 mouse, player 2 gamepad (DualSense, DualShock 4, XInput), one fireplace, shared coins and save, like the Switch edition. The engine already keeps a second pointer (touch leftover); a winmm.dll proxy feeds it from the pad after each input poll and draws its cursor with D3D11. Menus outside the fireplace are player 1 only. Checked through the tutorial and first letters by scripted screenshots and an owner playtest; later catalogs, the ending and Ho Ho Holiday are unchecked. MIT.
+  sources:
+  - https://github.com/dobrodeetel/little-inferno-coop
+  - https://github.com/cranebeaker/coop-anything/tree/main/games/little-inferno
+  - https://tomorrowcorporation.com/posts/grab-a-friend-switch-editions-will-have-local-multiplayer
+  checked: '2026-10-22'
+  made_with_coop_anything: true
+- game: The Witness
+  year: 2016
+  engine: In-house engine (Thekla); family not confirmed from the binary
+  project: witness-coop
+  url: https://github.com/TommoDotCommo/witness-coop
+  other_urls: []
+  kind: mod
+  status: prototype
+  coop_scope:
+    players_visible: 'yes'
+    world_state: partial
+  players: 2 (two copies on one PC)
+  networking: direct-ip
+  open_source: 'yes'
+  last_activity: 2026-10
+  qa: automated
+  notes: Dev preview, not playable with friends yet (no installer or release; localhost only). A proxy AnselSDK64.dll loaded by the game hooks Direct3D 11 Present
+    and draws the other player as a puppet; two game copies exchange camera pose over UDP. Solving a panel in one game marks it solved in the other and opens
+    the gated door by calling the game's own door function (events are numbered, acknowledged and resent). Tested on two tutorial door puzzles and one panel power-on chain, Steam build 11370412.
+    Panel power-on progression and one cable lit by a tutorial maze use their own reliable events; a fresh or reloaded game resyncs from its peer. Power-off switching, other cables, plates, lasers and bridges remain unsynced. QA is an in-process bot (no focus, no desktop input) with a state diff over all panels and doors
+    and baseline, loss, mutant, peer-restart, late-join, save-reload, second-door, power-on and cable scenarios. Coverage remains narrow, three tutorial puzzles (see games/the-witness). No other co-op work
+    was found; the MIT-licensed witness-randomizer and witness-trainer, which read and write the running game, were the starting point.
+  sources:
+  - https://github.com/TommoDotCommo/witness-coop
+  - https://github.com/jbzdarkid/witness-randomizer
+  - https://github.com/jbzdarkid/witness-trainer
+  - https://store.steampowered.com/app/210970/
+  - https://en.wikipedia.org/wiki/The_Witness_(2016_video_game)
+  checked: '2026-10-22'
+  made_with_coop_anything: true
+  searched:
+  - 'Repo DIRECTORY.md, games/, playbook, and public GitHub issues and PRs for The Witness (nothing), 2026-10-22'
+  - 'GitHub repository search via the API: the witness multiplayer, witness coop, the witness randomizer, TheWitnessExplorer, witness64_d3d11 (no co-op project), 2026-10-22'
+  - 'WebSearch (extended): The Witness Jonathan Blow multiplayer co-op mod; also randomizer / Archipelago client and engine queries (no co-op mod), 2026-10-22'
+  - 'Not checked: Nexus Mods, ModDB, Reddit, archive.org, Steam guides in depth, the game or speedrun Discords, non-English communities'
