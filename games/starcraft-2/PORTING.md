@@ -1,7 +1,7 @@
 # Making a StarCraft II campaign co-op-ready
 
 What the SC2Coop launcher does to a campaign by itself, what you (the map author) still have to decide or edit, and how to
-check a new campaign. Based on porting a WoL@Kit campaign and vanilla-based WoL mods (2026-10). Run the checker first:
+check a new campaign. Based on porting WoL@Kit campaigns (2026-10). Run the checker first:
 
 ```
 SC2Coop-console.exe campaign-check "<campaign folder>" report.md
@@ -100,6 +100,13 @@ What the launcher does with such a map:
   way or during a cinematic, stay player 1's. Vision of a unit shared with player 1 is shared with the guest too.
 - Not yet: separate credits/research/upgrades from each player's own hub (both use the host's campaign progress).
 
+**Planned: hub purchases and progress (decided 2026-10-22, not built).** One setting for two-faction (separate armies)
+campaigns, covering mission money, Hyperion armory upgrades and research together: "player 1's bank is what counts" (both
+use the host's progress) or "each player's money, upgrades and research are tracked in their own bank". One-army (Archon)
+play always uses the host's bank. Open: what the buddy's hub allows in Archon play. Either block purchases there, or let
+the buddy spend the shared (host's) credits with a clear notice. Vanilla WoL has no refunds, so an accidental purchase
+can't be undone; Kit campaigns refund for free. Today the buddy's purchases only count if the buddy starts the mission.
+
 The settings row appears in the launcher only when the campaign folder has at least one such map. `SC2_COOP_SEPARATE=1`
 still tries the same thing on a normal one-human map (cloned slot plus copies of player 1's starting units).
 
@@ -109,13 +116,13 @@ still tries the same thing on a normal one-human map (cloned slot plus copies of
   smoke test (below).
 - **Blizzard's own campaigns and other mods:** the hub launch hook and bank list depend on the campaign library. Progress lives
   in banks too, but under different names and possibly signed. Expect to add a hub adapter for that library.
-- **Vanilla-based WoL mods: supported** (2026-10-21, tested on a vanilla-based community campaign). The launcher tells the libraries apart by the hub's
+- **Vanilla-based WoL mods: supported** (2026-10-21, tested on UED 3.0.3). The launcher tells the libraries apart by the hub's
   launch calls and the mission's library calls; nothing to set. Hub: `libCamp_gf_LaunchMission` is replaced by the
   launcher's copy of it (A/B choice, briefing, PrepareForMission, game over) that records the final pick; `-cooplaunch
   TRaynor01` works (after the mission briefing plays). Missions: `-coopwin/-coopwinnow/-cooplose` use libCamp's names,
   `-coopobj <objective id> [fail]` takes the engine objective id. Not yet: Blizzard's Mission Archives replays and the
   guest's campaign tech in separate armies (see the table).
-- Assessment (2026-10-21, four vanilla-based WoL mods): all keep
+- Assessment (2026-10-21: UED 3.0.3, WoL Nod 1.1, RaptorX's 3-Race Nightmare, WoL+ CCM): all keep
   Blizzard's hub and campaign library (`libCamp`, Liberty/LibertyStory), with the same five `libCamp_gf_LaunchMission(mapID,
   simulation, difficulty)` calls in the hub script, so one "vanilla" adapter covers them. Kit's libraries are a renamed copy of
   libCamp, so most hooks map one to one:
@@ -132,6 +139,20 @@ still tries the same thing on a normal one-human map (cloned slot plus copies of
 
   Runtime (2026-10-18): Blizzard's TStory01, repacked, runs as an API game (intro, mission select, launch); `RequestGameInfo`
   on it crashed SC2.
+
+  Missions the launcher starts are not transition maps (`GameIsTransitionMap()` is false), which both libraries read as
+  "started from the editor or a restart" (2026-10-22, credits jumping between missions):
+  - libCamp's `libCamp_gf_PurchaseStorymodeTech()` (called by every mission) then runs the debug "buy average tech": credits
+    recomputed from the expected rewards minus purchases, mission progress set to the expected path, and the mission saved
+    as the last successful one (a defeat still paid its reward in the hub). The launcher removes the call (from the hub it
+    does nothing). TRaynor01-03 still get the same debug purchase inside `libCamp_gf_LoadCampaignData`; the defeat dialog
+    saves the defeat (`libCamp_gf_PrepareForStoryMode(defeat)`) so the hub pays nothing for it.
+  - Both libraries load the mission's restart snapshot (vanilla: the mission's own bank; Kit: `<mission>|...` sections of
+    the campaign bank, `MissionSectionExist`) when one exists, which undid purchases made since an earlier attempt. A start
+    from the hub drops the snapshot first (vanilla: the launcher deletes the bank; Kit: the hub clears the flag); a Retry
+    keeps it.
+  - The hub pays the last mission's reward every time it opens until a save marks it paid, so the host's hub saves 10 s
+    after opening and again before it closes without a launch.
 
 ## Testing a ported campaign
 

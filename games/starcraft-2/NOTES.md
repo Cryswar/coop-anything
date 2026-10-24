@@ -159,9 +159,61 @@ A/B choice missions launched directly, skipping the choice dialog):
 Derived: all three campaigns run every mission in co-op without changes to the campaigns. Unknown: why the first load
 of the two Char missions ran past 3 minutes; it didn't happen again.
 
+## 2026-10-22/23: campaign state on Blizzard's scripts, testers' round
+
+Two-PC tester sessions on a campaign that keeps Blizzard's scripts reported credits that jumped between missions
+(a loss paid a mission reward; a win left fewer credits than before), upgrades undone after the buddy picked a mission,
+and a broken hub after a Mission Archives replay.
+
+Observed (banks read after each step on one PC, and in the library source):
+- Every mission calls `libCamp_gf_PurchaseStorymodeTech()`. In a map that isn't a transition map
+  (`GameIsTransitionMap()` false, which is every mission started through the API), it runs the library's debug
+  "buy average tech": credits = expected rewards of the expected mission path minus purchases, mission progress
+  reset to that path, and the campaign bank saved with the mission as the last successful one. From the hub (a
+  transition) the call returns at once. TRaynor01-03 run the same debug purchase inside `libCamp_gf_LoadCampaignData`.
+- Each mission keeps a snapshot of the campaign state from its first start (its own bank in Blizzard's library;
+  a `MissionSectionExist` flag plus sections in WoL@Kit's campaign bank). Outside a transition the library loads it
+  whenever it exists, which undid purchases made since an earlier attempt.
+- The hub pays the last mission's reward every time it opens, until a save marks it paid. A hub closed without a
+  launch (Stop, or the other player's pick) paid it again next time.
+- At the end of a replay outside a transition, the library's save writes the replayed mission's snapshot into the
+  campaign bank: available and completed missions, best times, mercenaries, tech. After a replay of an early
+  mission it was the only mission on the star map, and the hub's rooms broke.
+- Each player's hub is its own game with its own banks; whichever hub launched the mission wrote the state that
+  counted, so the host's purchases vanished when the buddy picked.
+
+Changed: the debug call is removed from missions; a defeat is saved as a defeat; the snapshot is dropped on a start
+from the hub (kept for a retry and for a replay); after a replay the progress sections and the credits are restored
+from the copy taken before the mission; the host's hub saves itself shortly after opening and before closing; the
+buddy's hub has view-only shops (purchase triggers turned off); one co-op save per campaign, with a reset.
+Observed after: credits after a win equal exactly one mission reward; completed missions and credits survive replays.
+
+Other findings in the same round:
+- The guest's input moved from system-wide hooks to Raw Input after Windows Defender quarantined hook builds
+  repeatedly. Raw Input can't swallow keys, so the arrow keys are registered as hotkeys while the guest's window is in
+  front. A flood of `WM_INPUT` messages starved `WM_PAINT`, so the drag box overlay stayed black until it was redrawn
+  with `UpdateWindow`.
+- After a minimap click or a camera hotkey, the bridge didn't know the camera position and gave the arrow keys back to
+  the map's scroll, which made the position stale again: about 20 switches in 2.5 minutes. A press now waits for the
+  next camera report.
+- A buddy's client crashed seconds into a mission; its graphics log showed repeated "Lost D3D9 device" resets as the
+  launcher's loading screen was hidden. Windows reports exclusive fullscreen D3D games
+  (`SHQueryUserNotificationState` = `QUNS_RUNNING_D3D_FULL_SCREEN`); the launcher now stops drawing overlays then.
+- The launcher passed `-displayMode 0` and a window size on the command line to every client, which overrode the
+  players' own display mode. Removed for real installs.
+- Game speed: API games run at Faster. Measured from the game clock every 5 real seconds: Faster 1.41, Normal 1.00,
+  Slower 0.61 game seconds per real second. `GameSetSpeedValue` works mid-game; with `GameSetSpeedValueMinimum` and
+  `GameSetSpeedLocked(false)` it also goes below the minimum the library sets on Hard and Brutal.
+- One mission reset the UI frames after its opening cinematic, which hid the ping panel again; it is re-shown every
+  game second outside cinematics.
+- The launcher code is now public: https://github.com/Cryswar/sc2-coop (MIT), with test releases. Architecture and the
+  full pitfall list are in its `docs/`.
+
 ## Open questions
 
 - More than two human players: the protocol takes a list of client ports, so 3-4 may work; untested.
 - Heart of the Swarm campaigns: several hub maps, the launch call lives in the campaign library's UI, Kerrigan's
-  progress in banks; not started.
+  progress in banks; a feasibility check is under way.
+- Two-faction co-op with each player's own progress: both players' banks in one mission, and which player's mission
+  flow counts.
 - Long sessions and a full co-op campaign playthrough.
