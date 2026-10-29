@@ -7616,6 +7616,41 @@
   - https://www.pcgamingwiki.com/wiki/BattleTech
   checked: '2026-10-20'
   made_with_coop_anything: true
+- game: BattleTech
+  year: 2018
+  engine: Unity
+  project: battletech-coop
+  url: https://github.com/Cryswar/battletech-coop
+  other_urls:
+  - https://github.com/Cryswar/battletech-coop/releases
+  kind: mod
+  status: alpha
+  coop_scope:
+    players_visible: yes
+    story: partial
+    enemies: yes
+    world_state: partial
+    items: shared
+  players: '2+'
+  networking: steam-relay
+  open_source: yes
+  last_activity: 2026-10
+  qa: automated
+  notes: >-
+    Work in progress (pre-alpha, MIT), a ModTek mod for the Steam build 1.9.1. Combat is
+    lockstep on the game's own versus-multiplayer invocation messages, routed through the
+    host, with desync detection; Campaign and Career missions reach the guest as an in-memory
+    combat save. Every player can command every 'Mech of the shared lance. Between missions
+    the guest sees the host's company and its refits, pilot training, hiring, store, storage
+    and company customization go to the host (and the host's back) without a reload. Not done:
+    no per-player lances yet, travel and time are host-only; the shared mission opening
+    (0.0.13) is tested on ordinary contracts only. Automated two-copy tests plus human sessions over Steam (two players).
+  sources:
+  - https://github.com/Cryswar/battletech-coop
+  - https://github.com/Cryswar/battletech-coop/blob/main/docs/DESIGN.md
+  - https://github.com/Cryswar/battletech-coop/releases/tag/v0.0.13
+  checked: '2026-10-29'
+  made_with_coop_anything: true
 - game: 'Half-Life: Alyx'
   year: 2020
   engine: Source 2
